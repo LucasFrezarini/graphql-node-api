@@ -2,7 +2,12 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "es6",
-        "outDir": "dist"
+        "outDir": "dist",
+        "lib": [
+            "es2015",
+            "es2016",
+            "esnext",
+        ]
     },
     "include": [
         "src/**/*.ts"
