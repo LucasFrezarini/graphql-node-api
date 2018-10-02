@@ -1,0 +1,55 @@
+import * as Sequelize from "sequelize";
+import { IBaseModel } from "../interfaces/IBaseModel";
+import { IModels } from "../interfaces/IModels";
+
+export interface IPostAttributes {
+  id?: number;
+  title?: string;
+  content?: string;
+  photo?: string;
+  author?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface IPostInstance extends Sequelize.Instance<IPostAttributes>, IPostAttributes {}
+
+export interface IPostModel extends Sequelize.Model<IPostInstance, any> {}
+
+export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes): IPostModel => {
+  // tslint:disable:object-literal-sort-keys
+  const Post: IPostModel = sequelize.define("Post", {
+    id: {
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true,
+      type: DataTypes.INTEGER,
+    },
+    title: {
+      allowNull: false,
+      type: DataTypes.STRING,
+    },
+    content: {
+      allowNull: false,
+      type: DataTypes.TEXT,
+    },
+    photo: {
+      allowNull: false,
+      type: DataTypes.BLOB({
+        length: "long",
+      }),
+    },
+  });
+
+  Post.associate = (models: Sequelize.Models): void => {
+    Post.belongsTo(models.User, {
+      foreignKey: {
+        allowNull: false,
+        field: "author",
+        name: "author",
+      },
+    });
+  };
+
+  return Post;
+};

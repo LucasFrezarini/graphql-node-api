@@ -1,7 +1,6 @@
 import * as bcrypt from "bcrypt";
 import * as Sequelize from "sequelize";
 import { IBaseModel } from "../interfaces/IBaseModel";
-import { IModels } from "../interfaces/IModels";
 import logger from "../logging/logger";
 
 export interface IUserAttributes {
@@ -10,14 +9,15 @@ export interface IUserAttributes {
   email?: string;
   password?: string;
   photo?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IUserInstance extends Sequelize.Instance<IUserAttributes>, IUserAttributes {
   isPassword(encodedPassword: string, password: string): boolean;
 }
 
+// todo: remove the any type
 export interface IUserModel extends  IBaseModel, Sequelize.Model<IUserInstance, any> {}
 
 export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes): IUserModel => {
