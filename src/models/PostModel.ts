@@ -1,6 +1,4 @@
 import * as Sequelize from "sequelize";
-import { IBaseModel } from "../interfaces/IBaseModel";
-import { IModels } from "../interfaces/IModels";
 
 export interface IPostAttributes {
   id?: number;
@@ -39,6 +37,8 @@ export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes):
         length: "long",
       }),
     },
+  }, {
+    tableName: "posts",
   });
 
   Post.associate = (models: Sequelize.Models): void => {
