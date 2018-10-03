@@ -1,50 +1,23 @@
 import { makeExecutableSchema } from "graphql-tools";
+import { Mutation } from "./mutation";
+import { Query } from "./query";
+import { userTypes } from "./resources/user/user.schema";
+import { postTypes } from "./resources/post/post.schema";
+import { commentTypes } from "./resources/comment/comment.schema";
 
-const users: object[] = [
-  {
-    email: "lucas.frezarini@gmail.com",
-    id: 1,
-    name: "Lucas",
-  },
-  {
-    email: "Pocoyo@poco.com",
-    id: 2,
-    name: "Pocoyo",
-  },
-  {
-    email: "porco@rodorfo.com",
-    id: 3,
-    name: "Rodorfo",
-  },
-];
-
-const typeDefs = `
-  type User {
-    id: ID!
-    name: String!
-    email: String!
-  }
-
-  type Query {
-    allUsers: [User!]!
-  }
-
-  type Mutation {
-    createUser(name: String!, email: String!): User!
+const SchemaDefinition = `
+  type Schema {
+    query: Query
+    mutation: Mutation
   }
 `;
-
-const resolvers = {
-  Mutation: {
-    createUser: (parent, args) => {
-      const newUser = Object.assign({id: users.length + 1}, args);
-      users.push(newUser);
-      return newUser;
-    },
-  },
-  Query: {
-    allUsers: () => users,
-  },
-};
-
-export default makeExecutableSchema({typeDefs, resolvers});
+export default makeExecutableSchema({
+  typeDefs: [
+    SchemaDefinition,
+    Mutation,
+    Query,
+    commentTypes,
+    userTypes,
+    postTypes,
+  ],
+});
