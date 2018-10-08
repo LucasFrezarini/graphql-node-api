@@ -66,8 +66,8 @@ export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes):
     },
   });
 
-  User.prototype.isPassword =  async (encodedPassword: string, password: string): Promise<boolean> =>
-    await bcrypt.compareSync(password, encodedPassword);
+  User.prototype.isPassword =  (encodedPassword: string, password: string): boolean =>
+    bcrypt.compareSync(password, encodedPassword);
 
   return User;
 };
