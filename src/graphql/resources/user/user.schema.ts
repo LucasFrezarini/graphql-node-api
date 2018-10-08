@@ -7,6 +7,7 @@ export const userTypes = `
     photo: String
     createdAt: String!
     updatedAt: String!
+    posts(first: Int, offset: Int): [ Post! ]!
   }
 
   input userCreateInput {
@@ -35,5 +36,5 @@ export const userMutations = `
   createUser(input: userCreateInput!): User
   updateUser(id: ID!, input: userUpdateInput!): User
   updateUserPassword(id: ID!, input: userUpdatePasswordInput!): Boolean
-  delete(id: ID!): Boolean
+  deleteUser(id: ID!): Boolean
 `;
