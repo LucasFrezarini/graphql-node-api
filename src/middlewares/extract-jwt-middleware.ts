@@ -15,7 +15,7 @@ export const extreactJwtMiddleware = (): RequestHandler => {
     if (!token) { return next(); }
 
     jwt.verify(token, JWT_SECRET, async (err, decoded: any) => {
-      if (err) { return next(err); }
+      if (err) { return next(); }
 
       try {
         const user = await db.User.findById(decoded.sub, {
@@ -23,7 +23,7 @@ export const extreactJwtMiddleware = (): RequestHandler => {
         });
 
         if (user) {
-          req["context"]["user"] = {
+          req["context"]["authUser"] = {
             email: user.get("email"),
             id: user.get("id"),
           };

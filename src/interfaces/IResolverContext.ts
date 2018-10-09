@@ -4,5 +4,5 @@ import { IDbConnection } from "./IDbConnection";
 export interface IResolverContext {
   db?: IDbConnection;
   authorization?: string;
-  user: IAuthUser;
+  authUser: IAuthUser;
 }
