@@ -4,6 +4,8 @@ import * as graphqlHTTP from "express-graphql";
 import schema from "./graphql/schema";
 import db from "./models";
 
+import { extreactJwtMiddleware } from "./middlewares/extract-jwt-middleware";
+
 class App {
     public readonly application: express.Application;
 
@@ -14,9 +16,9 @@ class App {
 
     private middleware(): void {
         this.application.use("/graphql",
+            extreactJwtMiddleware(),
             (req, res, next) => {
                 // tslint:disable:no-string-literal
-                req["context"] = {};
                 req["context"].db = db;
                 next();
             },
