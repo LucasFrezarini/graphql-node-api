@@ -1,15 +1,18 @@
 import { GraphQLResolveInfo } from "graphql";
 import { Transaction } from "sequelize";
 import { IDbConnection } from "../../../interfaces/IDbConnection";
+import { IResolverContext } from "../../../interfaces/IResolverContext";
 import { ICommentInstance } from "../../../models/CommentModel";
-import { handleError } from "../../../utils/utils";
+import { handleError, throwError } from "../../../utils/utils";
+import { authResolvers } from "../../composable/auth.resolver";
+import { compose } from "../../composable/composable.resolver";
 
 export const commentResolvers = {
   Comment: {
-    user: (parent: ICommentInstance, args, { db }: { db: IDbConnection }, info: GraphQLResolveInfo) =>
+    user: (parent: ICommentInstance, args, { db }: IResolverContext, info: GraphQLResolveInfo) =>
       db.User.findById(parent.get("user")).catch(handleError),
 
-    post: (parent: ICommentInstance, args, { db }: { db: IDbConnection }, info: GraphQLResolveInfo) =>
+    post: (parent: ICommentInstance, args, { db }: IResolverContext, info: GraphQLResolveInfo) =>
       db.Post.findById(parent.get("post")).catch(handleError),
   },
 
@@ -24,35 +27,34 @@ export const commentResolvers = {
   },
 
   Mutation: {
-    createComment: (parent, { input }, { db }: { db: IDbConnection }, info) =>
-      db.sequelize.transaction((t: Transaction) =>
-        db.Comment.create(input, { transaction: t}),
-      ).catch(handleError),
+    createComment: compose(...authResolvers)((parent, { input }, { db, authUser }: IResolverContext, info) =>
+      db.sequelize.transaction((t: Transaction) => {
+        input.user = authUser.id;
+        return db.Comment.create(input, { transaction: t});
+      }).catch(handleError)),
 
-    updateComment: (parent, { id, input }, { db }: { db: IDbConnection }, info) =>
+    updateComment: compose(...authResolvers)((parent, { id, input }, { db, authUser }: IResolverContext, info) =>
       db.sequelize.transaction(async (t: Transaction) => {
         id = parseInt(id, 10);
         const comment = await db.Comment.findById(id);
 
-        if (!comment) {
-          throw new Error(`Comment with id ${id} not found!`);
-        }
+        throwError(!comment, `Comment with id ${id} not found!`);
+        throwError(comment.get("user") !== authUser.id,  `You can only edit comments created by yourself!`);
 
         return comment.update(input);
-      }).catch(handleError),
+      }).catch(handleError)),
 
-      deleteComment: (parent, { id }, { db }: { db: IDbConnection }, info) =>
+      deleteComment: compose(...authResolvers)((parent, { id }, { db, authUser }: IResolverContext, info) =>
         db.sequelize.transaction(async (t: Transaction) => {
           id = parseInt(id, 10);
           const comment = await db.Comment.findById(id);
 
-          if (!comment) {
-            throw new Error(`Comment with id ${id} not found!`);
-          }
+          throwError(!comment, `Comment with id ${id} not found!`);
+          throwError(comment.get("user") !== authUser.id,  `You can only delete comments created by yourself!`);
 
           const result = comment.destroy();
 
           return Boolean(result);
-        }).catch(handleError),
+        }).catch(handleError)),
   },
 };
