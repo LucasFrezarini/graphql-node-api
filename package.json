@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "bcrypt": "^3.0.1",
+    "dataloader": "^1.4.0",
     "express": "^4.16.3",
     "express-graphql": "^0.6.12",
     "graphql": "^14.0.2",
