@@ -9,11 +9,11 @@ import { compose } from "../../composable/composable.resolver";
 
 export const commentResolvers = {
   Comment: {
-    user: (parent: ICommentInstance, args, { db }: IResolverContext, info: GraphQLResolveInfo) =>
-      db.User.findById(parent.get("user")).catch(handleError),
+    user: (parent: ICommentInstance, args, { db, dataLoaders: {userLoader} }: IResolverContext,
+           info: GraphQLResolveInfo) => userLoader.load(parent.get("user")).catch(handleError),
 
-    post: (parent: ICommentInstance, args, { db }: IResolverContext, info: GraphQLResolveInfo) =>
-      db.Post.findById(parent.get("post")).catch(handleError),
+    post: (parent: ICommentInstance, args, { db, dataLoaders: {postLoader} }: IResolverContext,
+           info: GraphQLResolveInfo) => postLoader.load(parent.get("post")).catch(handleError),
   },
 
   Query: {

@@ -9,11 +9,11 @@ import { compose } from "../../composable/composable.resolver";
 
 export const postResolvers = {
   Post: {
-    author: (parent: IPostInstance, { id }, { db }: {db: IDbConnection}, info: GraphQLResolveInfo) =>
-      db.User.findById(parent.get("author")).catch(handleError),
+    author: (parent: IPostInstance, args, { dataLoaders: {userLoader} }: IResolverContext,
+             info: GraphQLResolveInfo) => userLoader.load(parent.get("author")).catch(handleError),
 
     comments: (
-      parent: IPostInstance, { first = 10, offset = 0 }, { db }: {db: IDbConnection}, info: GraphQLResolveInfo) =>
+      parent: IPostInstance, { first = 10, offset = 0 }, { db }: IResolverContext, info: GraphQLResolveInfo) =>
         db.Comment.findAll({
           limit: first,
           offset,
@@ -23,8 +23,8 @@ export const postResolvers = {
 
   Query: {
     posts: (parent: IPostInstance,
-            { first = 10, offset = 0 }, { db }: {db: IDbConnection}, info: GraphQLResolveInfo) =>
-              db.Post.find({
+            { first = 10, offset = 0 }, { db }: IResolverContext, info: GraphQLResolveInfo) =>
+              db.Post.findAll({
                 limit: first,
                 offset,
               }).catch(handleError),
