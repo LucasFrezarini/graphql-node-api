@@ -1,6 +1,5 @@
 import { GraphQLResolveInfo } from "graphql";
 import { Transaction } from "sequelize";
-import { IDbConnection } from "../../../interfaces/IDbConnection";
 import { IResolverContext } from "../../../interfaces/IResolverContext";
 import { IPostInstance } from "../../../models/PostModel";
 import { handleError, throwError } from "../../../utils/utils";
@@ -10,11 +9,13 @@ import { compose } from "../../composable/composable.resolver";
 export const postResolvers = {
   Post: {
     author: (parent: IPostInstance, args, { dataLoaders: {userLoader} }: IResolverContext,
-             info: GraphQLResolveInfo) => userLoader.load(parent.get("author")).catch(handleError),
+             info: GraphQLResolveInfo) => userLoader.load({key: parent.get("author"), info}).catch(handleError),
 
     comments: (
-      parent: IPostInstance, { first = 10, offset = 0 }, { db }: IResolverContext, info: GraphQLResolveInfo) =>
+      parent: IPostInstance, { first = 10, offset = 0 }, { db, requestedFields }: IResolverContext,
+      info: GraphQLResolveInfo) =>
         db.Comment.findAll({
+          attributes: requestedFields.getFields(info),
           limit: first,
           offset,
           where: { post: parent.get("id") },
@@ -23,16 +24,20 @@ export const postResolvers = {
 
   Query: {
     posts: (parent: IPostInstance,
-            { first = 10, offset = 0 }, { db }: IResolverContext, info: GraphQLResolveInfo) =>
+            { first = 10, offset = 0 }, { db, requestedFields }: IResolverContext, info: GraphQLResolveInfo) =>
               db.Post.findAll({
+                attributes: requestedFields.getFields(info, {keep: ["id"], exclude: ["comments"]}),
                 limit: first,
                 offset,
               }).catch(handleError),
 
-    post: async (parent: IPostInstance, { id }, { db }: {db: IDbConnection}, info: GraphQLResolveInfo) => {
+    post: async (parent: IPostInstance, { id }, { db, requestedFields }: IResolverContext,
+                 info: GraphQLResolveInfo) => {
       try {
         id = parseInt(id, 10);
-        const post = await db.Post.findById(id);
+        const post = await db.Post.findById(id, {
+          attributes: requestedFields.getFields(info, {keep: ["id"], exclude: ["comments"]}),
+        });
 
         throwError(!post, `Post with id ${id} not found!`);
 

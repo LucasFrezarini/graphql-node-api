@@ -1,6 +1,5 @@
 import { GraphQLResolveInfo } from "graphql";
 import { Transaction } from "sequelize";
-import { IDbConnection } from "../../../interfaces/IDbConnection";
 import { IResolverContext } from "../../../interfaces/IResolverContext";
 import { ICommentInstance } from "../../../models/CommentModel";
 import { handleError, throwError } from "../../../utils/utils";
@@ -10,16 +9,18 @@ import { compose } from "../../composable/composable.resolver";
 export const commentResolvers = {
   Comment: {
     user: (parent: ICommentInstance, args, { db, dataLoaders: {userLoader} }: IResolverContext,
-           info: GraphQLResolveInfo) => userLoader.load(parent.get("user")).catch(handleError),
+           info: GraphQLResolveInfo) => userLoader.load({key: parent.get("user"), info}).catch(handleError),
 
     post: (parent: ICommentInstance, args, { db, dataLoaders: {postLoader} }: IResolverContext,
-           info: GraphQLResolveInfo) => postLoader.load(parent.get("post")).catch(handleError),
+           info: GraphQLResolveInfo) => postLoader.load({key: parent.get("post"), info}).catch(handleError),
   },
 
   Query: {
-    commentsByPost: (
-      parent, { postId, first = 10, offset = 0 }, { db }: { db: IDbConnection }, info: GraphQLResolveInfo) =>
+    commentsByPost:
+      (parent, { postId, first = 10, offset = 0 },
+       { db, requestedFields }: IResolverContext, info: GraphQLResolveInfo) =>
         db.Comment.findAll({
+          attributes: requestedFields.getFields(info),
           limit: first,
           offset,
           where: { post: parseInt(postId, 10) },

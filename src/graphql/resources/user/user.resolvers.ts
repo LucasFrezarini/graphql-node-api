@@ -10,8 +10,9 @@ import { compose } from "../../composable/composable.resolver";
 export const userResolvers = {
   User: {
     posts: (parent: IUserInstance,
-            { first = 10, offset = 0 }, { db }: { db: IDbConnection }, info: GraphQLResolveInfo) =>
+            { first = 10, offset = 0 }, { db, requestedFields }: IResolverContext, info: GraphQLResolveInfo) =>
       db.Post.findAll({
+        attributes: requestedFields.getFields(info, {keep: ["id"], exclude: ["comments"]}),
         limit: first,
         offset,
         where: { author: parent.get("id") },
@@ -19,16 +20,19 @@ export const userResolvers = {
   },
 
   Query: {
-    users: (parent, { first = 10, offset = 0 }, { db }: IResolverContext, info: GraphQLResolveInfo) =>
+    users: (parent, { first = 10, offset = 0 }, { db, requestedFields }: IResolverContext, info: GraphQLResolveInfo) =>
         db.User.findAll({
+          attributes: requestedFields.getFields(info, {keep: ["id"], exclude: ["posts"]}),
           limit: first,
           offset,
         }).catch(handleError),
 
-    user: async (parent, { id }, { db }: { db: IDbConnection }, info: GraphQLResolveInfo) => {
+    user: async (parent, { id }, { db, requestedFields }: IResolverContext, info: GraphQLResolveInfo) => {
       try {
         id = parseInt(id, 10);
-        const user = await db.User.findById(id);
+        const user = await db.User.findById(id, {
+          attributes: requestedFields.getFields(info, {keep: ["id"], exclude: ["posts"]}),
+        });
 
         throwError(!user, `User with id ${id} not found!`);
 
@@ -39,9 +43,11 @@ export const userResolvers = {
     },
 
     currentUser: compose(...authResolvers)
-      (async (parent, args, { db, authUser }: IResolverContext, info: GraphQLResolveInfo) => {
+      (async (parent, args, { db, authUser, requestedFields }: IResolverContext, info: GraphQLResolveInfo) => {
         try {
-          const user = await db.User.findById(authUser.id);
+          const user = await db.User.findById(authUser.id, {
+            attributes: requestedFields.getFields(info, {keep: ["id"], exclude: ["posts"]}),
+          });
 
           throwError(!user, `User with id ${authUser.id} not found!`);
 
