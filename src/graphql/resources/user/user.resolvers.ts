@@ -30,7 +30,7 @@ export const userResolvers = {
     user: async (parent, { id }, { db, requestedFields }: IResolverContext, info: GraphQLResolveInfo) => {
       try {
         id = parseInt(id, 10);
-        const user = await db.User.findById(id, {
+        const user = await db.User.findByPk(id, {
           attributes: requestedFields.getFields(info, {keep: ["id"], exclude: ["posts"]}),
         });
 
