@@ -10,19 +10,19 @@ export const userTypes = `
     posts(first: Int, offset: Int): [ Post! ]!
   }
 
-  input userCreateInput {
+  input UserCreateInput {
     name: String!
     email: String!
     password: String!
   }
 
-  input userUpdateInput {
+  input UserUpdateInput {
     name: String!
     email: String!
     photo: String!
   }
 
-  input userUpdatePasswordInput {
+  input UserUpdatePasswordInput {
     password: String!
   }
 `;
@@ -34,8 +34,8 @@ export const userQueries = `
 `;
 
 export const userMutations = `
-  createUser(input: userCreateInput!): User
-  updateUser(input: userUpdateInput!): User
-  updateUserPassword(input: userUpdatePasswordInput!): Boolean
+  createUser(input: UserCreateInput!): User
+  updateUser(input: UserUpdateInput!): User
+  updateUserPassword(input: UserUpdatePasswordInput!): Boolean
   deleteUser: Boolean
 `;

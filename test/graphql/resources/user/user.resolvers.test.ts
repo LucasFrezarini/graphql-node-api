@@ -1,8 +1,12 @@
+import * as jwt from "jsonwebtoken";
+
 import { app, chai, db, expect, handleError } from "../../../test-utils";
+import { JWT_SECRET } from "../../../../src/utils/utils";
 
 describe("User", () => {
 
   let userId: number;
+  let token: string;
 
   beforeEach(async () => {
     await db.Comment.destroy({where: {}});
@@ -28,6 +32,7 @@ describe("User", () => {
     ]);
 
     userId = users[0].get("id");
+    token = jwt.sign({sub: userId}, JWT_SECRET);
   });
 
   describe("Queries", () => {
@@ -200,6 +205,193 @@ describe("User", () => {
             // tslint:disable-next-line:no-unused-expression
             expect(res.body.data.user).to.be.null;
             expect(res.body.errors[0].message).to.be.equals("Error: User with id -1 not found!");
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
+        });
+      });
+    });
+  });
+
+  describe("Mutations", () => {
+    describe("Application/json", () => {
+      describe("createUser", () => {
+        it("should create a new user", async () => {
+          const body = {
+            query: `
+              mutation createNewUser($input: UserCreateInput!){
+                createUser(input: $input) {
+                  id
+                  name
+                  email
+                }
+              }
+            `,
+            variables: {
+              input: {
+                email: "pikachu@email.com",
+                name: "Pikachu",
+                password: "123",
+              },
+            },
+          };
+
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Content-Type", "application/json")
+              .send(JSON.stringify(body));
+
+            expect(res.status).to.be.equals(200);
+            expect(res.body.data).to.be.an("object");
+
+            const createdUser = res.body.data.createUser;
+            expect(createdUser).to.has.keys(["id", "name", "email"]);
+            expect(parseInt(createdUser.id, 10)).to.be.an("number");
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
+        });
+      });
+
+      describe("updateUser", () => {
+        it("should update an existing user", async () => {
+          const body = {
+            query: `
+              mutation updateExistingUser($input: UserUpdateInput!){
+                updateUser(input: $input) {
+                  name
+                  email
+                  updatedAt
+                }
+              }
+            `,
+            variables: {
+              input: {
+                email: "wartortle@email.com",
+                name: "Wartortle",
+                photo: "some_photo",
+              },
+            },
+          };
+
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Authorization", `Bearer ${token}`)
+              .set("Content-Type", "application/json")
+              .send(JSON.stringify(body));
+
+            expect(res.status).to.be.equals(200);
+            expect(res.body.data).to.be.an("object");
+
+            const updatedUser = res.body.data.updateUser;
+            expect(updatedUser).to.has.keys(["name", "email", "updatedAt"]);
+            expect(updatedUser.name).to.be.equals("Wartortle");
+            expect(updatedUser.email).to.be.equals("wartortle@email.com");
+            // tslint:disable-next-line:no-unused-expression
+            expect(updatedUser.id).to.be.undefined;
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
+        });
+
+        it("should not update the user if the token is invalid", async () => {
+          const body = {
+            query: `
+              mutation updateExistingUser($input: UserUpdateInput!){
+                updateUser(input: $input) {
+                  name
+                  email
+                  updatedAt
+                }
+              }
+            `,
+            variables: {
+              input: {
+                email: "wartortle@email.com",
+                name: "Wartortle",
+                photo: "some_photo",
+              },
+            },
+          };
+
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Authorization", "Bearer INVALID_TOKEN")
+              .set("Content-Type", "application/json")
+              .send(JSON.stringify(body));
+
+            expect(res.status).to.be.equals(200);
+            expect(res.body).to.be.an("object");
+            expect(res.body).to.has.keys(["data", "errors"]);
+            expect(res.body.errors).to.be.an("array").of.length(1);
+            expect(res.body.errors[0].message).to.be.equals("JsonWebTokenError: jwt malformed");
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
+        });
+      });
+
+      describe("updateUserPassword", () => {
+        it("should update the password of an existing user", async () => {
+          const body = {
+            query: `
+              mutation updateExistingUserPassword($input: UserUpdatePasswordInput!){
+                updateUserPassword(input: $input)
+              }
+            `,
+            variables: {
+              input: {
+                password: "changed",
+              },
+            },
+          };
+
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Authorization", `Bearer ${token}`)
+              .set("Content-Type", "application/json")
+              .send(JSON.stringify(body));
+
+            expect(res.status).to.be.equals(200);
+            expect(res.body.data).to.be.an("object");
+            // tslint:disable-next-line:no-unused-expression
+            expect(res.body.data.updateUserPassword).to.be.true;
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
+        });
+      });
+
+      describe("deleteUser", () => {
+        it("should delete an existing user", async () => {
+          const body = {
+            query: `
+              mutation {
+                deleteUser
+              }
+            `,
+          };
+
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Authorization", `Bearer ${token}`)
+              .set("Content-Type", "application/json")
+              .send(JSON.stringify(body));
+
+            expect(res.status).to.be.equals(200);
+            expect(res.body.data).to.be.an("object");
+            // tslint:disable-next-line:no-unused-expression
+            expect(res.body.data.deleteUser).to.be.true;
           } catch (err) {
             handleError(err);
             throw err;

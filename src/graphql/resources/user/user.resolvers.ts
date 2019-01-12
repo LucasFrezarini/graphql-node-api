@@ -45,7 +45,7 @@ export const userResolvers = {
     currentUser: compose(...authResolvers)
       (async (parent, args, { db, authUser, requestedFields }: IResolverContext, info: GraphQLResolveInfo) => {
         try {
-          const user = await db.User.findById(authUser.id, {
+          const user = await db.User.findByPk(authUser.id, {
             attributes: requestedFields.getFields(info, {keep: ["id"], exclude: ["posts"]}),
           });
 
@@ -67,7 +67,7 @@ export const userResolvers = {
     updateUser: compose(...authResolvers)
       ((parent, { input }, { db, authUser }: IResolverContext, info: GraphQLResolveInfo) =>
         db.sequelize.transaction(async (t: Transaction) => {
-          const user = await db.User.findById(authUser.id);
+          const user = await db.User.findByPk(authUser.id);
 
           throwError(!user, `User with id ${authUser.id} not found!`);
 
@@ -77,7 +77,7 @@ export const userResolvers = {
         updateUserPassword: compose(...authResolvers)
           ((parent, { input }, { db, authUser }: IResolverContext, info: GraphQLResolveInfo) =>
             db.sequelize.transaction(async (t: Transaction) => {
-              const user = await db.User.findById(authUser.id);
+              const user = await db.User.findByPk(authUser.id);
 
               throwError(!user, `User with id ${authUser.id} not found!`);
 
@@ -89,7 +89,7 @@ export const userResolvers = {
       deleteUser: compose(...authResolvers)
         ((parent, args, { db, authUser }: IResolverContext, info: GraphQLResolveInfo) =>
           db.sequelize.transaction(async (t: Transaction) => {
-            const user = await db.User.findById(authUser.id);
+            const user = await db.User.findByPk(authUser.id);
 
             throwError(!user, `User with id ${authUser.id} not found!`);
 
