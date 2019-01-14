@@ -37,7 +37,7 @@ export const commentResolvers = {
     updateComment: compose(...authResolvers)((parent, { id, input }, { db, authUser }: IResolverContext, info) =>
       db.sequelize.transaction(async (t: Transaction) => {
         id = parseInt(id, 10);
-        const comment = await db.Comment.findById(id);
+        const comment = await db.Comment.findByPk(id);
 
         throwError(!comment, `Comment with id ${id} not found!`);
         throwError(comment.get("user") !== authUser.id,  `You can only edit comments created by yourself!`);
@@ -48,7 +48,7 @@ export const commentResolvers = {
       deleteComment: compose(...authResolvers)((parent, { id }, { db, authUser }: IResolverContext, info) =>
         db.sequelize.transaction(async (t: Transaction) => {
           id = parseInt(id, 10);
-          const comment = await db.Comment.findById(id);
+          const comment = await db.Comment.findByPk(id);
 
           throwError(!comment, `Comment with id ${id} not found!`);
           throwError(comment.get("user") !== authUser.id,  `You can only delete comments created by yourself!`);

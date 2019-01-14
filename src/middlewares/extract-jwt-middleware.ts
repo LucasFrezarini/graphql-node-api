@@ -18,7 +18,7 @@ export const extreactJwtMiddleware = (): RequestHandler => {
       if (err) { return next(); }
 
       try {
-        const user = await db.User.findById(decoded.sub, {
+        const user = await db.User.findByPk(decoded.sub, {
           attributes: ["id", "email"],
         });
 

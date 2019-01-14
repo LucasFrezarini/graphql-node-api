@@ -35,7 +35,7 @@ export const postResolvers = {
                  info: GraphQLResolveInfo) => {
       try {
         id = parseInt(id, 10);
-        const post = await db.Post.findById(id, {
+        const post = await db.Post.findByPk(id, {
           attributes: requestedFields.getFields(info, {keep: ["id"], exclude: ["comments"]}),
         });
 
@@ -60,7 +60,7 @@ export const postResolvers = {
     ((parent, { id, input }, { db, authUser }: IResolverContext, info: GraphQLResolveInfo) =>
       db.sequelize.transaction(async (t: Transaction) => {
         id = parseInt(id, 10);
-        const post = await db.Post.findById(id);
+        const post = await db.Post.findByPk(id);
 
         throwError(!post, `Post with id ${id} not found!`);
         throwError(post.get("author") !== authUser.id,  `You can only edit posts created by yourself!`);
@@ -73,7 +73,7 @@ export const postResolvers = {
       ((parent, { id }, { db, authUser }: IResolverContext, info: GraphQLResolveInfo) =>
         db.sequelize.transaction(async (t: Transaction) => {
           id = parseInt(id, 10);
-          const post = await db.Post.findById(id);
+          const post = await db.Post.findByPk(id);
 
           throwError(!post, `Post with id ${id} not found!`);
           throwError(post.get("author") !== authUser.id,  `You can only delete posts created by yourself!`);

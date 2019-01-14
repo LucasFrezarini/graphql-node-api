@@ -33,6 +33,9 @@ export default (sequelize: Sequelize.Sequelize, DataTypes: Sequelize.DataTypes):
     },
     photo: {
       allowNull: false,
+      get() {
+        return this.getDataValue("photo").toString();
+      },
       type: DataTypes.BLOB({
         length: "long",
       }),

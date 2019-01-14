@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "baseUrl": "./",
         "module": "commonjs",
         "target": "es6",
         "outDir": "dist",
@@ -7,7 +8,13 @@
             "es2015",
             "es2016",
             "esnext",
-        ]
+        ],
+        "paths": {
+            "*": [
+                "node_modules/*",
+                "src/typings/*"
+            ]
+        }
     },
     "include": [
         "src/**/*.ts"
