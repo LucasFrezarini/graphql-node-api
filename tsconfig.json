@@ -9,12 +9,6 @@
             "es2016",
             "esnext",
         ],
-        "paths": {
-            "*": [
-                "node_modules/*",
-                "src/typings/*"
-            ]
-        }
     },
     "include": [
         "src/**/*.ts"

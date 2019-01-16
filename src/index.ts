@@ -7,10 +7,11 @@ const initialize = async () => {
     try {
         await db.sequelize.sync();
         const server = http.createServer(app);
-        server.listen(3000);
+        const port = process.env.port || 3000;
+        server.listen(port);
 
         server.on("listening", () => {
-            logger.info("Server running at port 3000");
+            logger.info(`Server running at port ${port}`);
         });
 
         server.on("error", logger.error.bind(logger));
