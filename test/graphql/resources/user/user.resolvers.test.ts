@@ -211,6 +211,73 @@ describe("User", () => {
           }
         });
       });
+
+      describe("currentUser", () => {
+        it("should return the user infos of the token owner", async () => {
+          const body = {
+            query: `
+              query {
+                currentUser {
+                  name
+                  email
+                }
+              }
+            `,
+          };
+
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Content-Type", "application/json")
+              .set("Authorization", `Bearer ${token}`)
+              .send(JSON.stringify(body));
+
+            expect(res.status).to.be.equals(200);
+            const user = res.body.data.currentUser;
+
+            expect(res.body.data).to.be.an("object");
+            expect(user).to.be.an("object");
+            expect(user).to.has.keys(["name", "email"]);
+            expect(user.name).to.be.equals("Squirtle");
+            expect(user.email).to.be.equals("squirtle@email.com");
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
+        });
+
+        it("should return an error if the token owner is invalid", async () => {
+          const body = {
+            query: `
+              query {
+                currentUser {
+                  name
+                  email
+                }
+              }
+            `,
+          };
+
+          const invalidToken = jwt.sign({sub: -1}, JWT_SECRET);
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Content-Type", "application/json")
+              .set("Authorization", `Bearer ${invalidToken}`)
+              .send(JSON.stringify(body));
+
+            expect(res.status).to.be.equals(200);
+            expect(res.body).to.has.keys(["data", "errors"]);
+            expect(res.body.errors).to.be.an("array").of.length(1);
+
+            // tslint:disable-next-line:no-unused-expression
+            expect(res.body.data.currentUser).to.be.null;
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
+        });
+      });
     });
   });
 

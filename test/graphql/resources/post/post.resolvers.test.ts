@@ -284,35 +284,64 @@ describe("Post", () => {
             throw err;
           }
         });
+      });
 
-        describe("deletePost", () => {
-          it("should delete an existing post", async () => {
-            const body = {
-              query: `
-                mutation deleteExistingPost($id: ID!){
-                  deletePost(id: $id)
-                }
-              `,
-              variables: {
-                id: postId,
-              },
-            };
+      describe("deletePost", () => {
+        it("should delete an existing post", async () => {
+          const body = {
+            query: `
+              mutation deleteExistingPost($id: ID!){
+                deletePost(id: $id)
+              }
+            `,
+            variables: {
+              id: postId,
+            },
+          };
 
-            try {
-              const res = await chai.request(app)
-                .post("/graphql")
-                .set("Content-Type", "application/json")
-                .set("Authorization", `Bearer ${token}`)
-                .send(JSON.stringify(body));
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Content-Type", "application/json")
+              .set("Authorization", `Bearer ${token}`)
+              .send(JSON.stringify(body));
 
-              expect(res.status).to.be.equals(200);
-              // tslint:disable-next-line:no-unused-expression
-              expect(res.body.data.deletePost).to.be.true;
-            } catch (err) {
-              handleError(err);
-              throw err;
-            }
-          });
+            expect(res.status).to.be.equals(200);
+            // tslint:disable-next-line:no-unused-expression
+            expect(res.body.data.deletePost).to.be.true;
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
+        });
+
+        it("should not allow to delete an existing post if authorization token is not passed", async () => {
+          const body = {
+            query: `
+              mutation deleteExistingPost($id: ID!){
+                deletePost(id: $id)
+              }
+            `,
+            variables: {
+              id: postId,
+            },
+          };
+
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Content-Type", "application/json")
+              .send(JSON.stringify(body));
+
+            expect(res.status).to.be.equals(200);
+            expect(res.body.errors).to.be.an("array").with.length(1);
+            // tslint:disable-next-line:no-unused-expression
+            expect(res.body.data.deletePost).to.be.null;
+            expect(res.body.errors[0].message).to.be.equals("Unauthorized! Token not provided!");
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
         });
       });
     });

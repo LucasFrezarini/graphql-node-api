@@ -20,7 +20,7 @@ export const commentResolvers = {
       (parent, { postId, first = 10, offset = 0 },
        { db, requestedFields }: IResolverContext, info: GraphQLResolveInfo) =>
         db.Comment.findAll({
-          attributes: requestedFields.getFields(info),
+          attributes: requestedFields.getFields(info, {keep: undefined}),
           limit: first,
           offset,
           where: { post: parseInt(postId, 10) },

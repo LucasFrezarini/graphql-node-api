@@ -56,6 +56,47 @@ describe("Comment", () => {
   describe("Queries", () => {
     describe("Application/json", () => {
       describe("commentsByPost", () => {
+        it("should return a list of comments", async () => {
+          const body = {
+            query: `
+              query getComments($postId: ID!){
+                commentsByPost(postId: $postId) {
+                  comment
+                  user {
+                    id
+                  }
+                  post {
+                    id
+                  }
+                }
+              }
+            `,
+            variables: {
+              postId,
+            },
+          };
+
+          try {
+            const res = await chai.request(app)
+              .post("/graphql")
+              .set("Content-Type", "application/json")
+              .send(JSON.stringify(body));
+
+            expect(res.status).to.be.equals(200);
+
+            const comments = res.body.data.commentsByPost;
+            expect(res.body.data).to.be.an("object");
+            expect(comments).to.be.an("array").of.length(3);
+            expect(comments[0]).to.has.keys(["comment", "user", "post"]);
+            expect(comments[0].comment).to.be.equals("First Comment");
+            expect(parseInt(comments[0].user.id, 10)).to.be.equals(userId);
+            expect(parseInt(comments[0].post.id, 10)).to.be.equals(postId);
+          } catch (err) {
+            handleError(err);
+            throw err;
+          }
+        });
+
         it("should return a paginated list of comments", async () => {
           const body = {
             query: `

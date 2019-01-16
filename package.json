@@ -7,7 +7,8 @@
     "gulp": "gulp",
     "dev": "NODE_ENV=development JWT_SECRET=Change nodemon --delay 5 dist/index.js",
     "watch": "gulp watch",
-    "test": "NODE_ENV=test JWT_SECRET=jwt_test mocha"
+    "test": "NODE_ENV=test JWT_SECRET=jwt_test mocha",
+    "coverage": "nyc --extension .ts --include 'src/**/*.ts' --reporter html npm test"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +36,7 @@
     "gulp-typescript": "^5.0.0-alpha.3",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.4",
+    "nyc": "^13.1.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "typescript": "^3.1.1"
